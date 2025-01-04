@@ -30,6 +30,43 @@ for a in "${users[@]}"; do
     id "$a" &>/dev/null || die "User $a existiert nicht!"
 done
 
+# Installiere hilfreiche Pakete
+packages=(
+    neofetch  # Zeige Systeminfos an (OS, CPU, RAM, etc.)
+    htop      # Prozess-Explorer als TUI
+    tmux      # Virtuelle Terminals, die unabh. von SSH weiter laufen
+    fzf       # Fuzzy finder. Dependency für neovim.
+    git       # Versionskontrolle
+    unzip     # Extrahiere Zip-Archive
+    xxd       # Hex-viewer für command line
+    rsync     # Copy-Tool, das nur Änderungen kopiert. Dependency für backupProgram.
+    jq        # Formatiere, lese und bearbeite JSON-Dateien. Dependency für backupProgram.
+    curl      # HTTP-Client für Command-Line (Datei runterladen, Web-APIs benutzen, Web-Server testen, etc.)
+    nmap      # Portscanner
+    cmake     # Build-Tool
+)
+packages_ubuntu_wsl=(
+    libfuse2 # Für nvim AppImage
+)
+if grep -q Ubuntu </etc/os-release && uname -r | grep -q WSL; then
+    info installing packages for Ubuntu
+    apt-get update
+    apt-get install -y "${packages[@]}" "${packages_ubuntu_wsl[@]}"
+    apt-get upgrade -y
+elif [[ -f /etc/debian_version ]]; then
+    info installing packages for Debian
+    apt-get update
+    apt-get install -y "${packages[@]}"
+    apt-get upgrade -y
+elif [[ -f /etc/fedora-release ]]; then
+    info installing packages for Fedora
+    dnf install -y "${packages[@]}"
+    dnf upgrade -y
+else
+    die "Unbekanntes Betriebssystem!"
+fi
+
+
 # bashrc
 # ======
 # siehe: https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html
@@ -60,7 +97,9 @@ curl -L -o /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/
     || yell Konnte /usr/local/bin/nvim nicht schreiben. Ist neovim aktuell offen?
 chmod -v +x /usr/local/bin/nvim # Setzte Ausfürungsrechte
 
-# Lege Symlink zu nvim-Config in ka-nas repo an, wenn noch keine neovim-Config vorhanden ist.
+
+# Lege Symlink zu nvim-Config an, wenn noch keine neovim-Config vorhanden ist.
+mkdir -p /root/.config
 [[ -d /root/.config/nvim ]] || ln -sfv "$(pwd)/nvim" /root/.config/nvim
 for a in "${users[@]}"; do
     sudo -u "$a" mkdir -p "/home/$a/.config"
