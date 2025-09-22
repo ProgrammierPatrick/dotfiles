@@ -48,6 +48,9 @@ packages=(
 packages_ubuntu_wsl=(
     libfuse2 # Für nvim AppImage
 )
+packages_fedora=(
+    fuse # Für nvim AppImage
+)
 if grep -q Ubuntu </etc/os-release && uname -r | grep -q WSL; then
     info installing packages for Ubuntu
     apt-get update
@@ -93,7 +96,7 @@ ln -sfv "$(pwd)/tmux.conf" /etc/tmux.conf
 which nvim && [[ $(which nvim) != /usr/local/bin/nvim ]] && die "Neovim ist mit einem Paketmanager installiert. Bitte deinstallieren."
 
 # Lade AppImage herunter (AppImage ist eine einfache executable (elf), die per FUSE als container läuft. Kann wie normale executable verwendet werden.)
-curl -L -o /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage \
+curl -L -o /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.appimage \
     || yell Konnte /usr/local/bin/nvim nicht schreiben. Ist neovim aktuell offen?
 chmod -v +x /usr/local/bin/nvim # Setzte Ausfürungsrechte
 
