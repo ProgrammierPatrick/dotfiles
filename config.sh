@@ -32,10 +32,11 @@ done
 
 # Installiere hilfreiche Pakete
 packages=(
-    neofetch  # Zeige Systeminfos an (OS, CPU, RAM, etc.)
+    fastfetch # Zeige Systeminfos an (OS, CPU, RAM, etc.). Nachfolger von neofetch.
     htop      # Prozess-Explorer als TUI
     tmux      # Virtuelle Terminals, die unabh. von SSH weiter laufen
     fzf       # Fuzzy finder. Dependency für neovim.
+    npm       # Node JS Package Manager. Dependency für neovim mason
     git       # Versionskontrolle
     unzip     # Extrahiere Zip-Archive
     xxd       # Hex-viewer für command line
@@ -93,7 +94,7 @@ ln -sfv "$(pwd)/tmux.conf" /etc/tmux.conf
 which nvim && [[ $(which nvim) != /usr/local/bin/nvim ]] && die "Neovim ist mit einem Paketmanager installiert. Bitte deinstallieren."
 
 # Lade AppImage herunter (AppImage ist eine einfache executable (elf), die per FUSE als container läuft. Kann wie normale executable verwendet werden.)
-curl -L -o /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage \
+curl -L -o /usr/local/bin/nvim https://github.com/neovim/neovim/releases/download/nightly/nvim-linux-x86_64.appimage \
     || yell Konnte /usr/local/bin/nvim nicht schreiben. Ist neovim aktuell offen?
 chmod -v +x /usr/local/bin/nvim # Setzte Ausfürungsrechte
 
