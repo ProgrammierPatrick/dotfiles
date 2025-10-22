@@ -1,13 +1,25 @@
 {
   "plugins": {
-    "fidget.nvim": [],
+    "fidget.nvim": {
+      "rev": "3f54759",
+      "src": "https://github.com/j-hui/fidget.nvim"
+    },
     "gitsigns.nvim": {
-      "rev": "1ee5c1f",
+      "rev": "20ad441",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
-    "mason-lspconfig.nvim": [],
-    "mason.nvim": [],
-    "mini.nvim": [],
+    "mason-lspconfig.nvim": {
+      "rev": "2304ff6",
+      "src": "https://github.com/williamboman/mason-lspconfig.nvim"
+    },
+    "mason.nvim": {
+      "rev": "ad7146a",
+      "src": "https://github.com/williamboman/mason.nvim"
+    },
+    "mini.nvim": {
+      "rev": "e04b5c6",
+      "src": "https://github.com/nvim-mini/mini.nvim"
+    },
     "neo-tree.nvim": {
       "rev": "20244be",
       "src": "https://github.com/nvim-neo-tree/neo-tree.nvim"
@@ -24,12 +36,18 @@
       "rev": "7a2c97c",
       "src": "https://github.com/windwp/nvim-autopairs"
     },
-    "nvim-lspconfig": [],
+    "nvim-lspconfig": {
+      "rev": "ac98db2",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
     "plenary.nvim": {
       "rev": "b9fd522",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
-    "remember.nvim": [],
+    "remember.nvim": {
+      "rev": "1b51762",
+      "src": "https://github.com/vladdoster/remember.nvim"
+    },
     "telescope-ui-select.nvim": {
       "rev": "6e51d7d",
       "src": "https://github.com/nvim-telescope/telescope-ui-select.nvim"
@@ -38,8 +56,17 @@
       "rev": "b4da76b",
       "src": "https://github.com/nvim-telescope/telescope.nvim"
     },
-    "transparent.nvim": [],
-    "vim-moonfly-colors": [],
-    "which-key.nvim": []
+    "transparent.nvim": {
+      "rev": "8ac5988",
+      "src": "https://github.com/xiyaowong/transparent.nvim"
+    },
+    "vim-moonfly-colors": {
+      "rev": "8129169",
+      "src": "https://github.com/bluz71/vim-moonfly-colors"
+    },
+    "which-key.nvim": {
+      "rev": "b4177e3",
+      "src": "https://github.com/folke/which-key.nvim"
+    }
   }
 }

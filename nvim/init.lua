@@ -81,7 +81,19 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     end,
 })
 
+require "remember".setup {}
+
 require "nvim-autopairs".setup()
+
+require "fidget".setup {
+    notification = {
+        override_vim_notify = true
+    }
+}
+
+require "gitsigns".setup {
+    -- current_line_blame = true
+}
 
 ---------
 -- Theme
@@ -98,10 +110,17 @@ require "mini.icons".setup { style = "ascii" }
 
 vim.o.showmode = false
 vim.o.cmdheight = 0 -- hide command line completely. Status line is enough.
-require "mini.statusline".setup()
-
-require "mini.statusline".section_location = function() return "%2l:%-2v" end
-require "mini.statusline".section_diagnostics = function() return "" end -- hide E3 W2 H3 part. This is the number of LSP errors, warnings, etc
+require "mini.statusline".setup {
+    use_icons = false
+}
+MiniStatusline.section_location = function() return "%2l:%-2v" end
+MiniStatusline.section_diagnostics = function() return "" end -- hide E3 W2 H3 part. This is the number of LSP errors, warnings, etc
+MiniStatusline.section_git = function(args)
+    if MiniStatusline.is_truncated(args.trunc_width) then return "" end
+    if (vim.b.gitsigns_head) then return vim.b.gitsigns_head end
+end
+require "mini.statusline".section_diff = function() return "" end -- hide Diff +10 ~2~2
+-- require "mini.statusline".section_lsp = function() return "" end -- hide Diff +10 ~2~2
 
 if not ARM32 then
     require("mini.cursorword").setup() -- highlight word under cursor
@@ -127,7 +146,7 @@ require "which-key".setup {
 local mason_lsp = {
     "lua_ls",
     "bashls", -- dependency: dnf install nodejs-npm
-    "shellcheck",
+    -- "shellcheck",
     "pyright",
 }
 require "mason".setup()
