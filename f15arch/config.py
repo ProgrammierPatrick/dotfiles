@@ -118,7 +118,13 @@ def config():
     # Link EDID Monitor HDR data directory to system firmware settings
     run_cmd(["sudo", "ln", "-sfv", "/srv/dotfiles/edid", "/usr/lib/firmware/edid"], check=True)
 
-    # TODO: noch in GRUB eintragen
+    run_cmd(["os-prober"], check=True)
+    replace_in_file("/etc/default/grub", "^#?GRUB_SAVEDEFAULT=", "GRUB_SAVEDEFAULT=true", missing_behavior="append")
+    replace_in_file("/etc/default/grub", "^#?GRUB_DISABLE_OS_PROBER=", "GRUB_DISABLE_OS_PROBER=false", missing_behavior="append")
+    replace_in_file("/etc/default/grub", "^#?GRUB_DEFAULT=", "GRUB_DEFAULT=saved", missing_behavior="append")
+    run_cmd(["grub-mkconfig", "-o", "/boot/grub/grub.cfg"], check=True)
+
+    # TODO: für HDR noch in GRUB eintragen
     # GRUB konfigurieren: Editiere /etc/default/grub und füge den folgenden Parameter zur Zeile GRUB_CMDLINE_LINUX_DEFAULT hinzu:
     # drm.edid_firmware=DEIN_DOCK_ANSCHLUSS:edid/lg_27gs95qe.bin
     # Achte darauf, dass du den Parameter an das Ende der Zeile anfügst und er durch ein Leerzeichen vom Rest getrennt ist.
@@ -186,7 +192,6 @@ def arch_install():
     print("")
     write_file("/mnt/etc/hostname", HOSTNAME)
     print("")
-    write_file("/mnt/etc/grub.d/40_custom", "GRUB_SAVEDEFAULT=true\nGRUB_DISABLE_OS_PROBER=false\n")
     run_cmd(["arch-chroot", "/mnt", "os-prober"], check=True)
     run_cmd(["arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=GRUB"], check=True)
     run_cmd(["arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg"], check=True)
@@ -213,6 +218,35 @@ def write_file(path: str, text: str, **kwargs):
     p = Path(path)
     p.write_text(text)
     log_result(f"written {path}", text, **kwargs)
+
+def replace_in_file(path: str, detect_regex: str, full_line: str, missing_behavior: str):
+    p = Path(path)
+    if not p.exists():
+        exit(f"Error: file {path} could not be replaced in. Does not exist. Wanted to write: {full_line}")
+    content = p.read_text().splitlines()
+    new_content = content.copy()
+    replaced = False
+    for i, line in enumerate(content):
+        if re.search(detect_regex, line):
+            new_content[i] = full_line
+            replaced = True
+            if line != full_line:
+                print(f"* replaced line {i+1}: '{line.strip()}' -> '{full_line}' (in {path})")
+            break
+    if not replaced:
+        if missing_behavior == "append":
+            new_content.append(full_line)
+            print(f"* append line '{full_line}' (in {path})")
+            replaced = True
+        elif missing_behavior == "skip":
+            pass
+        elif missing_behavior == "fail":
+            log_result(f"replace in {path}", "\n".join(content))
+            exit(f"Error: file {path} contains no line that matches {detect_regex}.")
+        else:
+            exit(f"Error: Unknown missing_behavior '{missing_behavior}'")
+    if replaced and new_content != content:
+        write_file(path, "\n".join(new_content))
 
 def read_cmd(cmd: str, **kwargs) -> str:
     result = sp.run(cmd, shell=True, text=True, capture_output=True)
