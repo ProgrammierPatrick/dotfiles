@@ -66,6 +66,8 @@ elif [[ -f /etc/fedora-release ]]; then
     info installing packages for Fedora
     dnf install -y "${packages[@]}"
     dnf upgrade -y
+elif which pacman; then
+    pacman -Syu --needed "${packages[@]}"
 else
     die "Unbekanntes Betriebssystem!"
 fi
@@ -112,4 +114,9 @@ done
 
 # Trage in update-alternatives-Liste ein
 # Du kannst den Editor dann ändern: sudo update-alternatives --config editor
-update-alternatives --install /usr/bin/editor editor /usr/local/bin/nvim 40
+if which update-alternatives; then
+    update-alternatives --install /usr/bin/editor editor /usr/local/bin/nvim 40
+else
+    echo "EDITOR=/usr/local/bin/nvim" > /etc/profile.d/patrick-editor.sh
+    echo "VISUAL=/usr/local/bin/nvim" >> /etc/profile.d/patrick-editor.sh
+fi

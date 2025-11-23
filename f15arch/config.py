@@ -16,6 +16,7 @@ PACKAGES = [
     "base-devel",
     "python",
     "git",
+    "go", # yay dependency
     "linux",
     "linux-firmware",
     "intel-ucode",
@@ -38,6 +39,7 @@ PACKAGES = [
     "vim",
     "nano",
     "htop",
+    "tmux",
     "mission-center",
     "gparted",
     "man-db",
@@ -61,12 +63,17 @@ PACKAGES = [
     "blender",
     "keepass",
     "gimp",
-    "code",
     "steam",
     "lutris",
     "wine-mono",
     "wine-gecko",
     "gamescope",
+]
+
+AUR_PACKAGES = [
+    "yay",
+    "minecraft-launcher",
+    "visual-studio-code-bin"
 ]
 
 FLATPACKS = [
@@ -84,6 +91,9 @@ def main():
         config()
 
 def config():
+    # register this script to be globally callable
+    run_cmd(["ln", "-sf", "/srv/dotfiles/f15arch/config.py", "/usr/local/bin/update"], check=True)
+
     pacman_conf = read_file("/etc/pacman.conf")
     # if multilib commented out "#[multilib], #Include = ..."
     if re.search(r"^\s*#\s*\[multilib\]", pacman_conf, re.MULTILINE):
@@ -101,6 +111,20 @@ def config():
 
     for flatpack in FLATPACKS:
         run_cmd(["flatpak", "install", "-y", "flathub", flatpack], check=True)
+
+    run_cmd(["flatpak", "update", "-y"], check=True)
+
+    if run_cmd(["which", "yay"]).returncode != 0:
+        run_cmd(["sudo", "-u", "patrick", "curl", "--fail", "--location", "--remote-name", "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz"], cwd="/tmp", check=True)
+        run_cmd(["rm", "-rf", "/tmp/yay"], check=True) # start from clean build
+        run_cmd(["sudo", "-u", "patrick", "tar", "xf", "yay.tar.gz"], cwd="/tmp", check=True)
+        run_cmd(["sudo", "-u", "patrick", "less", "/tmp/yay/PKGBUILD"])
+        select = input("Continue? [y/N] ")
+        if not (select == "y" or select == "j"): exit("Aborted.")
+        run_cmd(["sudo", "-u", "patrick", "makepkg", "/tmp/yay/PKGBUILD"], cwd="/tmp/yay", check=True)
+        run_cmd("pacman -U /tmp/yay/yay-*-x86_64.pkg.tar.zst", shell=True, check=True)
+
+    run_cmd(["sudo", "-u", "patrick", "yay", "-Syu", "--needed", *AUR_PACKAGES], check=True)
 
     # Gnome set keyboard layout
     run_cmd(["sudo", "-Hu", "patrick", "dbus-launch", "gsettings", "set", "org.gnome.desktop.input-sources", "sources", "[('xkb', 'de')]"], check=True)
@@ -122,6 +146,8 @@ def config():
     replace_in_file("/etc/default/grub", "^#?GRUB_SAVEDEFAULT=", "GRUB_SAVEDEFAULT=true", missing_behavior="append")
     replace_in_file("/etc/default/grub", "^#?GRUB_DISABLE_OS_PROBER=", "GRUB_DISABLE_OS_PROBER=false", missing_behavior="append")
     replace_in_file("/etc/default/grub", "^#?GRUB_DEFAULT=", "GRUB_DEFAULT=saved", missing_behavior="append")
+    replace_in_file("/etc/default/grub", "^#?GRUB_CMDLINE_LINUX_DEFAULT=", 'GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3"', missing_behavior="append")
+    #replace_in_file("/etc/default/grub", "^#?GRUB_GFXMODE=", "GRUB_GFXMODE=640x480", missing_behavior="append")
     run_cmd(["grub-mkconfig", "-o", "/boot/grub/grub.cfg"], check=True)
 
     # TODO: für HDR noch in GRUB eintragen
@@ -130,6 +156,8 @@ def config():
     # Achte darauf, dass du den Parameter an das Ende der Zeile anfügst und er durch ein Leerzeichen vom Rest getrennt ist.
     # GRUB aktualisieren:
     # sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+    run_cmd("/srv/dotfiles/config.sh patrick", check=True, shell=True)
 
 def arch_install():
     getty_keymap = "de-latin1"
@@ -260,7 +288,9 @@ def log_result(action: str, result: str, show_all=False):
     if len(lines) == 1: print(f"* {action} -> {lines[0]}")
     else:
         print(f"* {action} -> {len(lines)} lines")
-        for l in lines if show_all else lines[0:8]:
+        if not show_all and len(lines) >= 6:
+            lines = [l for l in lines if not l.strip().startswith("#") and l.strip() != ""]
+        for l in lines if show_all else lines[0:6]:
             print(f"  | {l}")
 
 def run_cmd(*args, **kvargs):
